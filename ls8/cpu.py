@@ -92,5 +92,5 @@ class CPU:
 
             # else break the while loop
             else:
-                print(print(f"I did not understand that command: {self.ram[self.pc]}"))
+                print(f"I did not understand that command: {self.ram[self.pc]}")
                 sys.exit(1)
