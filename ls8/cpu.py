@@ -8,10 +8,10 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.register = [0] * 8
+        self.reg = [0] * 8
         self.pc = 0
 
-    def load(self):
+    def load(self, file):
         """Load a program into memory."""
 
         address = 0
@@ -20,13 +20,28 @@ class CPU:
 
         program = [
             # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
+            # 0b10000010, # LDI R0,8
+            # 0b00000000,
+            # 0b00001000,
+            # 0b01000111, # PRN R0
+            # 0b00000000,
+            # 0b00000001, # HLT
         ]
+
+        # open file
+        with open(str(file)) as x:
+            # check that the file exists
+            if not file:
+                print('Sorry! Could not find that file')
+                sys.exit(1)
+            # loop through each row of the file
+            for row in x:
+                # split each "word" apart and ignore comments/spaces
+                row = row.split(' ')[0].rstrip('#')
+                # convert binary string to integer
+                row = int(row, 2)
+                # append each "word" to the updated program list
+                program.append(row)
 
         for instruction in program:
             self.ram[address] = instruction
@@ -74,6 +89,7 @@ class CPU:
         HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
+        MUL = 0b10100010
 
         while True:
             # HLT
@@ -82,13 +98,18 @@ class CPU:
 
             # LDI
             elif self.ram[self.pc] == LDI:
-                self.register[self.ram_read(self.pc + 1)] = self.ram_read(self.pc + 2)
+                self.reg[self.ram_read(self.pc + 1)] = self.ram_read(self.pc + 2)
                 self.pc += 3
 
             # PRN
             elif self.ram[self.pc] == PRN:
-                print(self.register[self.ram_read(self.pc + 1)])
+                print(self.reg[self.ram_read(self.pc + 1)])
                 self.pc += 2
+
+            # MUL
+            elif self.ram[self.pc] == MUL:
+                print(self.reg[self.ram[self.pc + 1]] * self.reg[self.ram[self.pc + 2]])
+                self.pc += 3
 
             # else break the while loop
             else:
