@@ -39,6 +39,8 @@ class CPU:
             for row in x:
                 # split each "word" apart and ignore comments/spaces
                 row = row.split(' ')[0].rstrip('#')
+                if row == '':
+                    continue
                 # convert binary string to integer
                 row = int(row, 2)
                 # append each "word" to the updated program list
@@ -93,6 +95,8 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
 
         while True:
             # HLT
@@ -125,6 +129,17 @@ class CPU:
                 self.reg[self.ram[self.pc + 1]] = self.ram[self.SP]
                 self.SP += 1
                 self.pc += 2
+
+            # CALL
+            elif self.ram[self.pc] == CALL:
+                self.SP -= 1
+                self.ram[self.SP] = self.pc + 2
+                self.pc = self.reg[self.ram[self.pc + 1]]
+
+            # RET
+            elif self.ram[self.pc] == RET:
+                self.pc = self.ram[self.SP]
+                self.SP += 1
 
             # else break the while loop
             else:
