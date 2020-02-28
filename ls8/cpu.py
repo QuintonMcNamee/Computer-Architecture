@@ -12,6 +12,11 @@ class CPU:
         self.pc = 0
         self.SP = 128
 
+        # SPRINT
+        self.E = 0
+        self.L = 0
+        self.G = 0
+
     def load(self, file):
         """Load a program into memory."""
 
@@ -38,7 +43,7 @@ class CPU:
             # loop through each row of the file
             for row in x:
                 # split each "word" apart and ignore comments/spaces
-                row = row.split(' ')[0].rstrip('#')
+                row = row.split(' ')[0].rstrip('#\n')
                 if row == '':
                     continue
                 # convert binary string to integer
@@ -58,6 +63,19 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        
+        # SPRINT
+        # compare the values in the 2 registers
+        elif op == "CMP":
+            # if equal, set E to 1
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.E = 1
+            # if reg a is less than reg b, set L to 1
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.L = 1
+            # if reg a is greater than reg b, set G to 1
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.G = 1
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -100,6 +118,12 @@ class CPU:
         POP = 0b01000110
         CALL = 0b01010000
         RET = 0b00010001
+
+        # SPRINT
+        CMP = 0b10100111
+        JMP = 0b01010100
+        JEQ = 0b01010101
+        JNE = 0b01010110
 
         while True:
             # HLT
@@ -148,6 +172,34 @@ class CPU:
             elif self.ram[self.pc] == RET:
                 self.pc = self.ram[self.SP]
                 self.SP += 1
+
+            # SPRINT (run "sprint.ls8" to test output)
+            # CMP
+            elif self.ram[self.pc] == CMP:
+                # pass the comparison to the alu
+                self.alu('CMP', self.ram[self.pc + 1], self.ram[self.pc + 2])
+                self.pc += 3
+
+            # JMP
+            elif self.ram[self.pc] == JMP:
+                # jump to the stored address in the reg (no condition needed)
+                self.pc = self.reg[self.ram[self.pc + 1]]
+
+            # JEQ
+            elif self.ram[self.pc] == JEQ:
+                # jump to the stored address in the reg but only if E is 1
+                if self.E == 1:
+                    self.pc = self.reg[self.ram[self.pc + 1]]
+                else:
+                    self.pc += 2
+
+            # JNE
+            elif self.ram[self.pc] == JNE:
+                # jump to the stored address in the reg but only if E is 0
+                if self.E == 0:
+                    self.pc = self.reg[self.ram[self.pc + 1]]
+                else:
+                    self.pc += 2
 
             # else break the while loop
             else:
